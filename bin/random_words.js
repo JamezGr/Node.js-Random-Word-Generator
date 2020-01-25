@@ -8,10 +8,11 @@ const options = yargs
  .option("n", { alias: "number", describe: "Number of Words to Generate", type: "int", demandOption: true })
  .argv;
 
+// check to see whether argument given is the correct type
 const validateArgs = (option) => {
     if (typeof option == "number" && option > 0) {
       return {
-        message:"Generating " + option + " word(s)...",
+        message:"[*] Generating " + option + " word(s)...",
         words_to_select: option,
         is_valid: "true"
       }
@@ -24,9 +25,11 @@ const validateArgs = (option) => {
     }
 }
 
+// read word dictionary and produce object containing words
 const generateWordsList = () => {
     let raw_data = fs.readFileSync("./name_data/words_dictionary.json");
     let name_data = JSON.parse(raw_data);
+
     // return number of words in Data Set + JSON Data
     return {
       name_data: name_data,
@@ -34,10 +37,9 @@ const generateWordsList = () => {
     }
   }
 
-// select Random Number Between 1 and Number of Words in Word Dictionary
+// generate Random Number Between 1 and Number of Words in Word Dictionary
 const generateRandomNumber = () => {
     let max_number = generateWordsList().list_length;
-
     const randomNumber = Math.floor(Math.random() * max_number);
 
     return randomNumber
@@ -51,6 +53,13 @@ const selectWord = (selector) => {
     return random_word
 }
 
+// output words returned in to text file
+const printToFile = (new_words_list) => {
+    fs.writeFile("./filtered_data/output.txt", new_words_list, (error) => {
+        if (error) throw error;
+    });
+}
+
 // if the Argument given is a number
 if (validateArgs(options.number).is_valid == "true") {
   console.log(validateArgs(options.number).message + "\n");
@@ -58,18 +67,23 @@ if (validateArgs(options.number).is_valid == "true") {
   let selector = 1;
   // number of words to generate given as argument
   let words_to_generate = options.number;
+  let new_words_list = ""
 
   while (selector < words_to_generate + 1) {
       let random_number = generateRandomNumber();
       let random_word = selectWord(random_number);
 
+      // creates word list formatted with new lines between each word
+      new_words_list += random_word + "\n";
+      printToFile(new_words_list);
+
       // print random word
       console.log(random_word);
       selector++;
   }
+
+  console.log("\n\n[*] Text File saved as output.txt in directory filtered_data");
+
 } else if (validateArgs(options.number).is_valid == "false") {
   console.log(validateArgs(options.number).message);
 }
-
-// console.log(validateArgs(option));
-// console.log(generateWordsList());
